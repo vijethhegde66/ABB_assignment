@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Alarm Management Philosophy</title>
+  <meta name="doc_id" content="ALM-PHIL-030">
+  <meta name="doc_type" content="alarm_philosophy">
+  <meta name="equipment_classes" content="general">
+  <meta name="alarm_codes" content="">
+  <meta name="sites" content="NorthPlant,SouthPlant,EastRefinery">
+  <meta name="revision" content="3">
+  <meta name="effective_date" content="2025-04-01">
+  <meta name="owner" content="Alarm Management Lead">
+  <meta name="trust_level" content="controlled">
+  <style>body{font-family:sans-serif}</style>
+  <script>console.log("scripts are stripped during ingestion")</script>
+</head>
+<body>
+<h1>Alarm Management Philosophy (ALM-PHIL-030)</h1>
+
+<h2>1. Purpose</h2>
+<p>Defines how alarms are designed, prioritised, rationalised and monitored at all sites, aligned with ISA-18.2 and EEMUA 191. Every alarm must require a defined operator response.</p>
+
+<h2>2. Alarm Priority and Response Time</h2>
+<table>
+<tr><th>Priority</th><th>Severity</th><th>Consequence</th><th>Target response time</th></tr>
+<tr><td>P1 / Urgent</td><td>critical</td><td>Safety, environmental or major production loss imminent</td><td>Less than 5 minutes</td></tr>
+<tr><td>P2 / High</td><td>high</td><td>Significant equipment damage or production loss</td><td>Less than 15 minutes</td></tr>
+<tr><td>P3 / Medium</td><td>medium</td><td>Moderate consequence</td><td>Less than 60 minutes</td></tr>
+<tr><td>P4 / Low</td><td>low</td><td>Minor consequence</td><td>Within the shift</td></tr>
+</table>
+<p>When several alarms are active, the operator shall address them in order of priority score: severity first, then asset criticality (A, B, C), then whether the alarm is unacknowledged and recurring. Safety and electrical protection alarms on criticality A assets always take precedence.</p>
+
+<h2>3. Performance Targets</h2>
+<ul>
+<li>Average alarm rate: no more than 6 alarms per operator per hour (very likely acceptable); more than 12 is likely over-demanding.</li>
+<li>Alarm floods (10 or more alarms in 10 minutes): less than 1 % of the time.</li>
+<li>Chattering alarms (3 or more activations within 1 minute, or activations shorter than 60 seconds): zero tolerated; rationalise immediately.</li>
+<li>Standing alarms (active longer than 24 hours): fewer than 5 per console.</li>
+<li>Critical priority alarms: less than 5 % of annunciated alarms.</li>
+</ul>
+
+<h2>4. Recurring Alarms</h2>
+<p>An alarm that recurs more than 3 times in 7 days indicates an unresolved process or equipment problem. It shall be investigated by the responsible engineer using alarm history, correlation with related assets and the applicable troubleshooting guide. Recurring alarms must not be suppressed or shelved as a substitute for fixing the cause.</p>
+
+<h2>5. Rationalisation Rules</h2>
+<p>Apply deadband of 1 - 2 % of span and on-delay of 3 - 5 seconds to analogue alarms prone to chattering. Setpoint, priority and suppression changes require Management of Change (MOC) approval. Shelving is limited to 8 hours and requires supervisor approval.</p>
+</body>
+</html>

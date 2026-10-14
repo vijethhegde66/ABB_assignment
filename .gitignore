@@ -1,0 +1,9 @@
+# Ignore everything
+*
+
+# Keep solution folder and its contents
+!/solution/
+!/solution/**
+
+# Keep .gitignore
+!.gitignore

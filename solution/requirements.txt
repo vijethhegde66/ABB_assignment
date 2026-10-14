@@ -1,0 +1,13 @@
+# Runtime dependencies (pinned to the versions the test suite was run with).
+mcp==2.3.0
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+httpx==0.28.1
+pydantic==2.14.1
+pydantic-settings==2.15.0
+numpy==2.5.4
+jsonschema==4.26.0
+pyyaml==6.0.3
+pypdf==6.20.1
+# optional LLM provider (only used when LLM_PROVIDER=anthropic)
+anthropic==1.13.0

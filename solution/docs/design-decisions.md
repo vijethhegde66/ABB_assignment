@@ -1,0 +1,22 @@
+# Design Decisions
+
+| # | Decision | Alternatives considered | Rationale / trade-off |
+|---|---|---|---|
+| 1 | **Python end to end**, one image for all Python services | TS/Node backend, separate images | One language for the MCP server, RAG and orchestration; the official MCP Python SDK is mature; one image keeps builds fast. |
+| 2 | **MCP Python SDK 2.x `MCPServer`** with Pydantic-typed tools and Streamable HTTP | FastMCP 1.x, hand-rolled JSON-RPC | Typed `inputSchema`/`outputSchema` generated from code, structured content, in-process client for tests, current spec version. |
+| 3 | **Separate connector package** under the MCP server | Calls inside tool functions | Reusable, testable with `respx`, single place for auth/retry/timeout/error mapping; tools stay thin. |
+| 4 | **Typed error codes in a JSON tool-error payload** | Plain text errors, protocol errors | The orchestrator can react (`retryable`, `NOT_FOUND`, …) and the GUI shows them; failures stay *tool* errors (`isError`) per MCP guidance, not protocol failures. |
+| 5 | **Trace propagation via MCP `_meta`** → HTTP headers | HTTP headers only | `_meta` works on every transport (stdio included); the server copies it into `trace_id`/`x-request-id` headers on the Postman contract. |
+| 6 | **Deterministic, intent-driven stage planner**; optional LLM only for prose | LLM agent choosing tools | Industrial safety context: reproducible, testable, no hallucinated tool calls, no tool choice influenced by document text, works offline. Chains are still dynamic: they adapt to intent, entities, tool availability and earlier outputs. An LLM planner could be added behind the same tool registry. |
+| 7 | **Deterministic grounded composer** as default answer generator; LLM answer accepted only after validation | LLM always | Every statement carries `[T#]/[D#]` evidence; offline CI; the LLM path is validated (unknown refs, missing refs, unsafe wording → fallback). |
+| 8 | **Claude (`claude-opus-5-5`) via the official Anthropic SDK** as the optional provider, behind an `LLMProvider` protocol | Direct HTTP, other vendors | Replaceable provider; `effort=medium`, server-side refusal fallback, typed SDK errors mapped to `LLMError`. |
+| 9 | **Hybrid retrieval (BM25 + vectors, RRF) with metadata boosts** | Pure vector search | Plant documents are dominated by codes, tags and exact terms (`BFP_SP_LO`, `LCV-100`) where lexical matching is essential; RRF is robust without score calibration. |
+| 10 | **Offline hashing embeddings by default**, pluggable sentence-transformers | Hosted embedding API | No secrets or network needed for CI and air-gapped OT environments; deterministic tests. Weaker semantics; mitigated by hybrid search, contextual chunk headers, synonyms. |
+| 11 | **Heading-aware chunking with contextual headers and chunk-level alarm codes** | Fixed-size windows | Procedure steps stay with their section; citations point to an exact section; the right sub-section (4.2 vs 4.1) wins. |
+| 12 | **File-based vector index** behind `VectorIndex` | Qdrant / pgvector container | 59 chunks do not justify another service; atomic writes and a manifest give reproducibility; the interface allows a swap. |
+| 13 | **Consistency check rules** (prohibitive language × action verbs) + lexical support | LLM judge | Explainable and testable for safety-critical conflicts (restart after trip, continued operation above limit, bypassing protections). An LLM judge could extend coverage later. |
+| 14 | **Secondary work-order MCP server with draft → approve → submit** | No write tools | Demonstrates multi-server discovery, partial failure and the required *write-operation approval* with server-side enforcement (HMAC, expiry, single use) plus client-side policy. |
+| 15 | **Simulator with deterministic per-day generation and embedded causal patterns** | Static fixtures | Realistic analytics (correlation finds real chains), stable tests, "last 90 days" always has data. Fault injection makes retries and degradation demonstrable. |
+| 16 | **Build-free static GUI** (ES modules, CSP-strict) | React/Vite | No Node toolchain, tiny attack surface, works behind nginx or served by the backend; tested with Playwright. |
+| 17 | **Per-request MCP sessions** | Long-lived sessions | Simple lifecycle (no cross-task cancel scopes), automatic recovery after a server restart; handshake cost is milliseconds locally. Pooling is a listed improvement. |
+| 18 | **In-memory conversation store (LRU + TTL)** | Redis | Single-replica demo; interface isolates it. |

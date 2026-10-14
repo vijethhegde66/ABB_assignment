@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alarm Investigation Copilot</title>
+  <link rel="stylesheet" href="static/styles.css">
+  <script type="module" src="static/app.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">⚡</span>
+    <div>
+      <h1>Alarm Investigation Copilot</h1>
+      <p class="subtitle">MCP tools + document RAG · evidence-backed alarm investigation</p>
+    </div>
+  </div>
+  <div class="status" id="status" aria-live="polite">
+    <span class="pill pill-muted" id="status-mcp">MCP: …</span>
+    <span class="pill pill-muted" id="status-rag">RAG: …</span>
+    <span class="pill pill-muted" id="status-llm">LLM: …</span>
+    <button class="btn btn-ghost" id="btn-new" title="Start a new conversation">New chat</button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="chat card" aria-label="Chat">
+    <div class="messages" id="messages">
+      <div class="empty" id="empty-state">
+        <h2>Ask about an alarm, asset or site</h2>
+        <p>The copilot discovers MCP tools, chains Alarm Management API calls, retrieves controlled procedures and
+          answers with citations. Try one of these:</p>
+        <div class="examples" id="examples"></div>
+      </div>
+    </div>
+    <form class="composer" id="composer" autocomplete="off">
+      <label for="input" class="sr-only">Message</label>
+      <textarea id="input" rows="2" maxlength="2000"
+                placeholder="e.g. Investigate recurring high-severity alarms for Boiler Feed Pump 101 over the last 90 days"></textarea>
+      <button class="btn btn-primary" id="send" type="submit">Send</button>
+    </form>
+  </section>
+
+  <section class="panel card" aria-label="Evidence panels">
+    <nav class="tabs" role="tablist">
+      <button role="tab" class="tab active" data-tab="investigation">Investigation</button>
+      <button role="tab" class="tab" data-tab="sources">Sources <span class="count" id="count-sources"></span></button>
+      <button role="tab" class="tab" data-tab="trace">MCP trace <span class="count" id="count-trace"></span></button>
+      <button role="tab" class="tab" data-tab="retrieval">Retrieval</button>
+      <button role="tab" class="tab" data-tab="tools">Tools</button>
+      <button role="tab" class="tab hidden" data-tab="demo" id="tab-demo">Demo controls</button>
+    </nav>
+    <div class="tabpanes">
+      <div class="pane active" id="pane-investigation"><p class="muted">Run a query to see the alarm summary,
+        likely causes and recommendations.</p></div>
+      <div class="pane" id="pane-sources"><p class="muted">Document citations used in the answer appear here.</p></div>
+      <div class="pane" id="pane-trace"><p class="muted">Every MCP tool call (arguments, status, retries,
+        underlying API calls, raw result) appears here.</p></div>
+      <div class="pane" id="pane-retrieval"><p class="muted">RAG queries, filters, scores and quarantined passages.</p></div>
+      <div class="pane" id="pane-tools"><p class="muted">Loading tool catalog…</p></div>
+      <div class="pane" id="pane-demo"></div>
+    </div>
+  </section>
+</main>
+
+<dialog id="wr-dialog" class="dialog">
+  <form method="dialog" id="wr-form">
+    <h3>Confirm work request</h3>
+    <p class="muted">This is a <strong>write operation</strong> in the maintenance system. Review the draft and
+      confirm explicitly.</p>
+    <pre class="json" id="wr-draft"></pre>
+    <label>Approved by <input id="wr-approver" required minlength="2" maxlength="80" placeholder="Your name"></label>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost" value="cancel" formnovalidate>Cancel</button>
+      <button class="btn btn-primary" id="wr-confirm" value="confirm">Create work request</button>
+    </div>
+  </form>
+</dialog>
+</body>
+</html>

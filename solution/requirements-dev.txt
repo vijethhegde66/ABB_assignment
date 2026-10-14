@@ -1,0 +1,12 @@
+-r requirements.txt
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
+pytest-timeout==2.4.0
+respx==0.23.1
+ruff==0.17.0
+mypy==2.4.0
+types-PyYAML
+pip-audit
+# GUI end-to-end test + screenshot capture (then: python -m playwright install chromium)
+playwright

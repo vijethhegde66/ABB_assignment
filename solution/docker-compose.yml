@@ -1,0 +1,105 @@
+# docker compose up --build   ->   GUI on http://localhost:3000
+x-python-service: &python-service
+  build: .
+  image: alarm-copilot:latest
+  env_file:
+    - path: .env
+      required: false
+  restart: unless-stopped
+
+x-healthcheck: &healthcheck
+  interval: 5s
+  timeout: 3s
+  retries: 20
+  start_period: 5s
+
+services:
+  alarm-api:
+    <<: *python-service
+    command: ["python", "-m", "alarm_simulator"]
+    environment:
+      SIM_HOST: 0.0.0.0
+      SIM_PORT: "8000"
+      SIM_API_TOKENS: ${ALARM_API_TOKEN:-change-me-alarm-api-token}
+    ports: ["8000:8000"]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+
+  alarm-mcp:
+    <<: *python-service
+    command: ["python", "-m", "alarm_mcp"]
+    environment:
+      MCP_TRANSPORT: streamable-http
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: "9000"
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-change-me-mcp-token}
+      ALARM_API_BASE_URL: http://alarm-api:8000
+      ALARM_API_TOKEN: ${ALARM_API_TOKEN:-change-me-alarm-api-token}
+    ports: ["9000:9000"]
+    depends_on:
+      alarm-api: { condition: service_healthy }
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:9000/health')"]
+
+  work-orders-mcp:
+    <<: *python-service
+    command: ["python", "-m", "work_orders_mcp"]
+    environment:
+      WO_MCP_HOST: 0.0.0.0
+      WO_MCP_PORT: "9100"
+      WO_MCP_AUTH_TOKEN: ${WORK_ORDERS_MCP_TOKEN:-change-me-wo-token}
+      WO_MCP_SIGNING_KEY: ${WO_MCP_SIGNING_KEY:-change-me-signing-key}
+    ports: ["9100:9100"]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:9100/health')"]
+
+  rag-ingest:
+    <<: *python-service
+    restart: "no"
+    command: ["python", "-m", "rag.ingestion.cli", "--docs", "/app/rag/documents", "--index", "/app/var/rag-index"]
+    volumes:
+      - rag-index:/app/var
+
+  copilot-backend:
+    <<: *python-service
+    command: ["python", "-m", "copilot"]
+    environment:
+      COPILOT_HOST: 0.0.0.0
+      COPILOT_PORT: "8080"
+      COPILOT_CORS_ORIGINS: http://localhost:3000
+      MCP_SERVER_URL: http://alarm-mcp:9000/mcp
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-change-me-mcp-token}
+      WORK_ORDERS_MCP_URL: http://work-orders-mcp:9100/mcp
+      WORK_ORDERS_MCP_TOKEN: ${WORK_ORDERS_MCP_TOKEN:-change-me-wo-token}
+      RAG_INDEX_PATH: /app/var/rag-index
+      DOCUMENT_PATH: /app/rag/documents
+      RAG_AUTO_INGEST: "false"
+      LLM_PROVIDER: ${LLM_PROVIDER:-none}
+      LLM_MODEL: ${LLM_MODEL:-claude-opus-5-5}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      ENABLE_DEMO_CONTROLS: ${ENABLE_DEMO_CONTROLS:-true}
+      ALARM_API_BASE_URL: http://alarm-api:8000
+      ALARM_API_TOKEN: ${ALARM_API_TOKEN:-change-me-alarm-api-token}
+    volumes:
+      - rag-index:/app/var
+    ports: ["8080:8080"]
+    depends_on:
+      alarm-mcp: { condition: service_healthy }
+      work-orders-mcp: { condition: service_healthy }
+      rag-ingest: { condition: service_completed_successfully }
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8080/api/health/live')"]
+
+  frontend:
+    build: ./apps/frontend
+    ports: ["3000:3000"]
+    depends_on:
+      copilot-backend: { condition: service_healthy }
+    restart: unless-stopped
+
+volumes:
+  rag-index:

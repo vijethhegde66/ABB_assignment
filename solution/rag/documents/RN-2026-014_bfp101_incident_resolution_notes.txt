@@ -1,0 +1,30 @@
+---
+doc_id: RN-2026-014
+title: Incident Resolution Notes - BFP 101 Low Suction Pressure Events (Q1 2026)
+doc_type: resolution_notes
+equipment_classes: [boiler_feed_pump, deaerator, control_valve]
+alarm_codes: [BFP_SP_LO, BFP_DP_LO, DEA_LVL_LO]
+sites: [NorthPlant]
+revision: "1"
+effective_date: 2026-03-28
+owner: Reliability Engineering
+trust_level: controlled
+---
+
+INCIDENT RESOLUTION NOTES - RN-2026-014
+
+Asset: Boiler Feed Pump 101 (NP-BFP-101), Deaerator DA-1 (NP-DEA-001)
+
+Summary
+Between January and March 2026 BFP 101 experienced repeated BFP Suction Pressure Low alarms, several followed by BFP Discharge Pressure Low and vibration alarms. Each episode was preceded by a Deaerator Level Low alarm during load ramps.
+
+Root cause
+The deaerator level control valve LCV-100 positioner had an instrument air leak at the tubing fitting, making the valve respond slowly to level demand. Level dipped below 35 % during load increases, reducing NPSH available to BFP 101.
+
+Corrective actions completed
+1. Positioner tubing replaced and valve stroke-tested (WO-23410).
+2. Level controller retuned (gain reduced, integral time increased).
+3. Suction strainer cleaned; moderate debris found.
+
+Lessons learned
+If the suction pressure alarms return, check LCV-100 first (stroke test, positioner air supply) and verify level controller tuning before suspecting the pump. Recurrence of the pattern should be treated as the same failure mode until proven otherwise.
